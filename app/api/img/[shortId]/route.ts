@@ -5,11 +5,13 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { shortId: string } }
+  { params }: { params: Promise<{ shortId: string }> }
 ) {
   try {
+    const { shortId } = await params;
+    
     const image = await prisma.image.findUnique({
-      where: { shortId: params.shortId },
+      where: { shortId },
     });
 
     if (!image) {
