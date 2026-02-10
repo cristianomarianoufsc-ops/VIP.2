@@ -38,3 +38,6 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ---
 *Atualizado em 10 de Fevereiro de 2026 para acionar o deploy na Vercel.*
+
+---
+*Build validado localmente em 10 de Fevereiro de 2026. Correções aplicadas para Next.js 15+ e Prisma Client.*
