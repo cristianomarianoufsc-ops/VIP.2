@@ -6,15 +6,19 @@ const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Upload request received');
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
     if (!file) {
+      console.log('No file provided in formData');
       return NextResponse.json(
         { error: 'No file provided' },
         { status: 400 }
       );
     }
+
+    console.log(`Processing file: ${file.name}, size: ${file.size}, type: ${file.type}`);
 
     // Gerar IDs únicos
     const shortId = nanoid(8);
@@ -26,6 +30,7 @@ export async function POST(request: NextRequest) {
     const base64 = buffer.toString('base64');
     const imageUrl = `data:${file.type};base64,${base64}`;
 
+    console.log('Attempting to save to database...');
     // Salvar no banco de dados
     const image = await prisma.image.create({
       data: {
@@ -35,6 +40,7 @@ export async function POST(request: NextRequest) {
         imageUrl,
       },
     });
+    console.log('Database save successful');
 
     // Retornar link curto
     return NextResponse.json({
@@ -43,10 +49,14 @@ export async function POST(request: NextRequest) {
       shortUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/img/${image.shortId}`,
       fileName: image.fileName,
     });
-  } catch (error) {
-    console.error('Upload error:', error);
+  } catch (error: any) {
+    console.error('Upload error detail:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code
+    });
     return NextResponse.json(
-      { error: 'Upload failed' },
+      { error: 'Upload failed', detail: error.message },
       { status: 500 }
     );
   }
