@@ -7,7 +7,7 @@ import { Copy, ArrowLeft } from 'lucide-react';
 interface UploadedImage {
   id: string;
   fileName: string;
-  url: string;
+  shortUrl: string;
   createdAt: string;
 }
 
@@ -25,25 +25,35 @@ export default function Upload() {
     setError(null);
 
     try {
-      // Simular upload - em produção, você faria uma chamada para uma API
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const url = e.target?.result as string;
-        const newImage: UploadedImage = {
-          id: Date.now().toString(),
-          fileName: file.name,
-          url: url,
-          createdAt: new Date().toLocaleDateString('pt-BR'),
-        };
-        setImages([newImage, ...images]);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-        setUploading(false);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const data = await response.json();
+
+      const newImage: UploadedImage = {
+        id: data.shortId,
+        fileName: data.fileName,
+        shortUrl: data.shortUrl,
+        createdAt: new Date().toLocaleDateString('pt-BR'),
       };
-      reader.readAsDataURL(file);
+
+      setImages([newImage, ...images]);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (err) {
       setError('Erro ao enviar imagem');
+      console.error(err);
+    } finally {
       setUploading(false);
     }
   };
@@ -107,7 +117,7 @@ export default function Upload() {
                   className="border border-gray-200 rounded-lg overflow-hidden bg-white hover:shadow-lg transition-shadow"
                 >
                   <img
-                    src={image.url}
+                    src={image.shortUrl}
                     alt={image.fileName}
                     className="w-full h-48 object-cover"
                   />
@@ -115,13 +125,18 @@ export default function Upload() {
                     <p className="text-sm text-gray-700 font-medium truncate mb-3">
                       {image.fileName}
                     </p>
-                    <button
-                      onClick={() => copyToClipboard(image.url)}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <Copy className="w-4 h-4" />
-                      Copiar Link
-                    </button>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => copyToClipboard(image.shortUrl)}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                      >
+                        <Copy className="w-4 h-4" />
+                        Copiar Link
+                      </button>
+                      <p className="text-xs text-gray-500 break-all">
+                        {image.shortUrl}
+                      </p>
+                    </div>
                     <p className="text-xs text-gray-500 mt-2">{image.createdAt}</p>
                   </div>
                 </div>
