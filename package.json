@@ -12,6 +12,7 @@
     "@prisma/client": "^5.21.0",
     "@supabase/supabase-js": "^2.95.3",
     "aws-sdk": "^2.1693.0",
+    "cloudinary": "^2.9.0",
     "lucide-react": "^0.563.0",
     "nanoid": "^5.1.6",
     "next": "16.1.6",

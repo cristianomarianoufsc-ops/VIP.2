@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
-import { supabase } from '../../lib/supabase';
-import prisma from '../../lib/prisma';
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+
 
 // Configurações de validação
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -48,13 +55,7 @@ export async function POST(request: NextRequest) {
     console.log(`[${requestId}] Upload request received`);
 
     // Verificar se as variáveis de ambiente estão configuradas
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      console.error(`[${requestId}] Missing Supabase environment variables`);
-      return NextResponse.json(
-        { error: 'Erro de configuração do servidor. Variáveis de ambiente não encontradas.' },
-        { status: 500 }
-      );
-    }
+
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -90,64 +91,32 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    console.log(`[${requestId}] Attempting to upload to Supabase Storage...`);
+    console.log(`[${requestId}] Attempting to upload to Cloudinary...`);
 
-    // 1. Upload para o Supabase Storage (bucket 'images')
-    const { data: storageData, error: storageError } = await supabase.storage
-      .from('images')
-      .upload(fileKey, buffer, {
-        contentType: file.type,
-        upsert: false
-      });
+    const cloudinaryUploadResult = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        { folder: "vip2_uploads", public_id: fileKey },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        }
+      ).end(buffer);
+    });
 
-    if (storageError) {
-      console.error(`[${requestId}] Supabase Storage error:`, {
-        message: storageError.message,
-        status: storageError.status,
-        statusCode: storageError.statusCode,
-        details: JSON.stringify(storageError)
-      });
-
-      // Retornar erro mais específico baseado no tipo de erro
-      let errorMessage = 'Erro ao enviar arquivo para armazenamento';
-      if (storageError.message.includes('Bucket not found')) {
-        errorMessage = 'Bucket de armazenamento não encontrado';
-      } else if (storageError.message.includes('Unauthorized')) {
-        errorMessage = 'Permissão negada ao armazenamento';
-      } else if (storageError.message.includes('Payload too large')) {
-        errorMessage = 'Arquivo muito grande para o armazenamento';
-      }
-
+    if (!cloudinaryUploadResult || !cloudinaryUploadResult.secure_url) {
+      console.error(`[${requestId}] Cloudinary upload failed:`, cloudinaryUploadResult);
       return NextResponse.json(
-        { error: errorMessage, detail: storageError.message },
+        { error: 'Erro ao enviar arquivo para o Cloudinary' },
         { status: 500 }
       );
     }
 
-    console.log(`[${requestId}] Storage upload successful. Data:`, storageData);
+    const publicUrl = cloudinaryUploadResult.secure_url;
+    console.log(`[${requestId}] Cloudinary upload successful. Public URL: ${publicUrl}`);
 
-    // 2. Obter a URL pública do arquivo
-    const { data: { publicUrl } } = supabase.storage
-      .from('images')
-      .getPublicUrl(fileKey);
 
-    console.log(`[${requestId}] Generated public URL: ${publicUrl}`);
 
-    console.log(`[${requestId}] Attempting to save to database...`);
 
-    // 3. Salvar metadados no banco de dados via Prisma
-    console.log(`[${requestId}] Prisma data:`, { shortId, fileName: file.name, fileKey, imageUrl: publicUrl });
-    
-    const image = await prisma.image.create({
-      data: {
-        shortId,
-        fileName: file.name,
-        fileKey: fileKey,
-        imageUrl: publicUrl,
-      },
-    });
-
-    console.log(`[${requestId}] Database save successful. Image ID: ${image.id}`);
 
     const duration = Date.now() - startTime;
     console.log(`[${requestId}] Upload completed successfully in ${duration}ms`);
@@ -155,10 +124,9 @@ export async function POST(request: NextRequest) {
     // Retornar link curto e informações
     return NextResponse.json({
       success: true,
-      shortId: image.shortId,
-      shortUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/img/${image.shortId}`,
-      imageUrl: image.imageUrl,
-      fileName: image.fileName,
+      shortId,
+      imageUrl: publicUrl,
+      fileName: file.name,
       fileSize: file.size,
       uploadDuration: duration
     });

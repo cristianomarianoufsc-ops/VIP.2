@@ -64,10 +64,10 @@ export default function Upload() {
       }
 
       const newImage: UploadedImage = {
-        id: data.shortId,
+        id: data.shortId || data.imageUrl, // Usar imageUrl como fallback para id se shortId não existir
         fileName: data.fileName,
-        shortUrl: data.shortUrl,
-        createdAt: new Date().toLocaleDateString('pt-BR'),
+        shortUrl: data.imageUrl, // Usar imageUrl diretamente como shortUrl
+        createdAt: new Date().toLocaleDateString("pt-BR"),
         fileSize: data.fileSize,
       };
 
