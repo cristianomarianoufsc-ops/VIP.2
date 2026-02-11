@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
-import { supabase } from '../../lib/supabase';
-import prisma from '../../lib/prisma';
+import { supabase } from '../../../lib/supabase';
+import prisma from '../../../lib/prisma';
 
 // Configurações de validação
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
