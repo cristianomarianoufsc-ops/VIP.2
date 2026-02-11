@@ -2,20 +2,27 @@
 
 import { useRef, useState } from 'react';
 import Link from 'next/link';
-import { Copy, ArrowLeft } from 'lucide-react';
+import { Copy, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface UploadedImage {
   id: string;
   fileName: string;
   shortUrl: string;
   createdAt: string;
+  fileSize?: number;
+}
+
+interface UploadError {
+  message: string;
+  detail?: string;
 }
 
 export default function Upload() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<UploadError | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -23,8 +30,25 @@ export default function Upload() {
 
     setUploading(true);
     setError(null);
+    setSuccess(null);
 
     try {
+      // Validação no cliente (feedback imediato)
+      const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+      const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+      if (file.size > MAX_FILE_SIZE) {
+        throw new Error(
+          `Arquivo muito grande. Tamanho máximo: 5MB. Tamanho do seu arquivo: ${(file.size / 1024 / 1024).toFixed(2)}MB`
+        );
+      }
+
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        throw new Error(
+          `Tipo de arquivo não permitido. Tipos aceitos: JPEG, PNG, WebP, GIF. Seu arquivo: ${file.type}`
+        );
+      }
+
       const formData = new FormData();
       formData.append('file', file);
 
@@ -33,26 +57,36 @@ export default function Upload() {
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || data.error || 'Erro ao enviar imagem');
+      }
 
       const newImage: UploadedImage = {
         id: data.shortId,
         fileName: data.fileName,
         shortUrl: data.shortUrl,
         createdAt: new Date().toLocaleDateString('pt-BR'),
+        fileSize: data.fileSize,
       };
 
       setImages([newImage, ...images]);
+      setSuccess(`Imagem "${file.name}" enviada com sucesso!`);
+
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+
+      // Limpar mensagem de sucesso após 5 segundos
+      setTimeout(() => setSuccess(null), 5000);
     } catch (err) {
-      setError('Erro ao enviar imagem');
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao enviar imagem';
+      setError({
+        message: 'Erro ao enviar imagem',
+        detail: errorMessage
+      });
+      console.error('Upload error:', err);
     } finally {
       setUploading(false);
     }
@@ -60,7 +94,15 @@ export default function Upload() {
 
   const copyToClipboard = (url: string) => {
     navigator.clipboard.writeText(url);
-    alert('Link copiado!');
+    setSuccess('Link copiado para a área de transferência!');
+    setTimeout(() => setSuccess(null), 3000);
+  };
+
+  const formatFileSize = (bytes?: number) => {
+    if (!bytes) return '';
+    if (bytes < 1024) return `${bytes}B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
   };
 
   return (
@@ -78,8 +120,21 @@ export default function Upload() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-8">
-            {error}
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8 flex gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-red-800">{error.message}</h3>
+              {error.detail && (
+                <p className="text-red-700 text-sm mt-1">{error.detail}</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-8 flex gap-3">
+            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <p className="text-green-800">{success}</p>
           </div>
         )}
 
@@ -100,6 +155,9 @@ export default function Upload() {
             {uploading ? 'Enviando...' : 'Selecionar Imagem'}
           </button>
           <p className="text-gray-600 mt-4">Clique para selecionar uma imagem</p>
+          <p className="text-gray-500 text-sm mt-2">
+            Formatos aceitos: JPEG, PNG, WebP, GIF • Tamanho máximo: 5MB
+          </p>
         </div>
 
         <div>
@@ -137,7 +195,12 @@ export default function Upload() {
                         {image.shortUrl}
                       </p>
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">{image.createdAt}</p>
+                    <div className="flex justify-between items-center mt-3 text-xs text-gray-500">
+                      <span>{image.createdAt}</span>
+                      {image.fileSize && (
+                        <span>{formatFileSize(image.fileSize)}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
