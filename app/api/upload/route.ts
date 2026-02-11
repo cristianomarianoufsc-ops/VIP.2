@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { supabase } from '@/app/lib/supabase';
-
-const prisma = new PrismaClient();
+import prisma from '@/app/lib/prisma';
 
 // Configurações de validação
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -138,6 +136,8 @@ export async function POST(request: NextRequest) {
     console.log(`[${requestId}] Attempting to save to database...`);
 
     // 3. Salvar metadados no banco de dados via Prisma
+    console.log(`[${requestId}] Prisma data:`, { shortId, fileName: file.name, fileKey, imageUrl: publicUrl });
+    
     const image = await prisma.image.create({
       data: {
         shortId,
