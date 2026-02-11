@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { nanoid } from 'nanoid';
+import { createClient } from '@supabase/supabase-js';
 
 const prisma = new PrismaClient();
+
+// Inicializar cliente Supabase para Storage
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,38 +28,56 @@ export async function POST(request: NextRequest) {
 
     // Gerar IDs únicos
     const shortId = nanoid(8);
-    const fileKey = `images/${shortId}-${Date.now()}`;
+    const fileExtension = file.name.split('.').pop();
+    const fileKey = `${shortId}-${Date.now()}.${fileExtension}`;
 
-    // Converter arquivo para base64 (para armazenamento local)
+    // Converter arquivo para Buffer para upload no Supabase
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const base64 = buffer.toString('base64');
-    const imageUrl = `data:${file.type};base64,${base64}`;
+
+    console.log('Attempting to upload to Supabase Storage...');
+    // 1. Upload para o Supabase Storage (bucket 'images')
+    const { data: storageData, error: storageError } = await supabase.storage
+      .from('images')
+      .upload(fileKey, buffer, {
+        contentType: file.type,
+        upsert: false
+      });
+
+    if (storageError) {
+      console.error('Supabase Storage error:', storageError);
+      throw new Error(`Storage upload failed: ${storageError.message}`);
+    }
+
+    // 2. Obter a URL pública do arquivo
+    const { data: { publicUrl } } = supabase.storage
+      .from('images')
+      .getPublicUrl(fileKey);
 
     console.log('Attempting to save to database...');
-    // Salvar no banco de dados
+    // 3. Salvar metadados no banco de dados via Prisma
     const image = await prisma.image.create({
       data: {
         shortId,
         fileName: file.name,
-        fileKey,
-        imageUrl,
+        fileKey: fileKey,
+        imageUrl: publicUrl,
       },
     });
     console.log('Database save successful');
 
-    // Retornar link curto
+    // Retornar link curto e informações
     return NextResponse.json({
       success: true,
       shortId: image.shortId,
-      shortUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/img/${image.shortId}`,
+      shortUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/img/${image.shortId}`,
+      imageUrl: image.imageUrl,
       fileName: image.fileName,
     });
   } catch (error: any) {
     console.error('Upload error detail:', {
       message: error.message,
       stack: error.stack,
-      code: error.code
     });
     return NextResponse.json(
       { error: 'Upload failed', detail: error.message },
