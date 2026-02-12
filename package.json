@@ -4,19 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
-    "@prisma/client": "^5.21.0",
-    "@supabase/supabase-js": "^2.95.3",
+
+
     "aws-sdk": "^2.1693.0",
     "cloudinary": "^2.9.0",
     "lucide-react": "^0.563.0",
     "nanoid": "^5.1.6",
     "next": "16.1.6",
-    "prisma": "^5.21.0",
+
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
