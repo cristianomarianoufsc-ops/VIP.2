@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`[${requestId}] Attempting to upload to Cloudinary...`);
 
-    const cloudinaryUploadResult = await new Promise((resolve, reject) => {
+    const cloudinaryUploadResult = await new Promise<any>((resolve, reject) => {
       cloudinary.uploader.upload_stream(
         { folder: "vip2_uploads", public_id: fileKey },
         (error, result) => {
