@@ -124,11 +124,12 @@ export async function POST(request: NextRequest) {
     // Retornar link curto e informações
     return NextResponse.json({
       success: true,
-      shortId,
+      shortId: fileKey, // Usar fileKey como o ID para a página de visualização
       imageUrl: publicUrl,
       fileName: file.name,
       fileSize: file.size,
-      uploadDuration: duration
+      uploadDuration: duration,
+      shortUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/img/${fileKey}` // Link para a nova página de visualização
     });
   } catch (error: any) {
     const duration = Date.now() - startTime;

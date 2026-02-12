@@ -64,9 +64,9 @@ export default function Upload() {
       }
 
       const newImage: UploadedImage = {
-        id: data.shortId || data.imageUrl, // Usar imageUrl como fallback para id se shortId não existir
+        id: data.shortId, // Usar o shortId retornado pela API (que é o fileKey)
         fileName: data.fileName,
-        shortUrl: data.imageUrl, // Usar imageUrl diretamente como shortUrl
+        shortUrl: data.shortUrl, // Usar o novo shortUrl retornado pela API (link para a página de visualização)
         createdAt: new Date().toLocaleDateString("pt-BR"),
         fileSize: data.fileSize,
       };
