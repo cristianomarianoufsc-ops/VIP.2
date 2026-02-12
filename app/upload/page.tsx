@@ -8,6 +8,7 @@ interface UploadedImage {
   id: string;
   fileName: string;
   shortUrl: string;
+  imageUrl: string;
   createdAt: string;
   fileSize?: number;
 }
@@ -64,9 +65,10 @@ export default function Upload() {
       }
 
       const newImage: UploadedImage = {
-        id: data.shortId, // Usar o shortId retornado pela API (que é o fileKey)
+        id: data.shortId,
         fileName: data.fileName,
-        shortUrl: data.shortUrl, // Usar o novo shortUrl retornado pela API (link para a página de visualização)
+        shortUrl: data.shortUrl,
+        imageUrl: data.imageUrl,
         createdAt: new Date().toLocaleDateString("pt-BR"),
         fileSize: data.fileSize,
       };
@@ -175,7 +177,7 @@ export default function Upload() {
                   className="border border-gray-200 rounded-lg overflow-hidden bg-white hover:shadow-lg transition-shadow"
                 >
                   <img
-                    src={image.shortUrl}
+                    src={image.imageUrl || image.shortUrl}
                     alt={image.fileName}
                     className="w-full h-48 object-cover"
                   />
