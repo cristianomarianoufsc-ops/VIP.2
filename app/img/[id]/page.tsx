@@ -22,17 +22,20 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
     title: `Imagem ${fileKey}`,
     description: `Veja a imagem ${fileKey} hospedada no Cloudinary.`, 
     openGraph: {
-      title: `Imagem ${fileKey}`,
-      description: `Veja a imagem ${fileKey} hospedada no Cloudinary.`, 
+      title: `Visualizar Imagem`,
+      description: `Clique para ver a imagem completa.`, 
       images: [
         {
           url: imageUrl,
+          secureUrl: imageUrl,
           width: 1200,
           height: 630,
-          alt: `Imagem ${fileKey}`,
+          type: 'image/png',
+          alt: `Imagem`,
         },
       ],
       type: 'website',
+      siteName: 'VIP Image Host',
     },
     twitter: {
       card: 'summary_large_image',
