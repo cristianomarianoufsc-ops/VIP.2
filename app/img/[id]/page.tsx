@@ -141,8 +141,10 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
     
     // Outras tags que podem ajudar
     other: {
-      'fb:app_id': '966242223397117', // ID padrão se necessário, ou remover se não tiver
+      'fb:app_id': '966242223397117', // ID padrão se necessário
       'thumbnail': squareImageUrl,
+      'og:image:secure_url': optimizedImageUrl,
+      'og:image:type': 'image/jpeg',
     }
   };
 }
