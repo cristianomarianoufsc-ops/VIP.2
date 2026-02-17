@@ -7,6 +7,17 @@ interface ImagePageProps {
   params: Promise<{ id: string }>;
 }
 
+// Função auxiliar para obter a URL base dinamicamente
+function getBaseUrl() {
+  if (process.env.NEXT_PUBLIC_BASE_URL) {
+    return process.env.NEXT_PUBLIC_BASE_URL;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return 'http://localhost:3000';
+}
+
 async function getImage(id: string) {
   try {
     const image = await prisma.image.findUnique({
@@ -22,8 +33,7 @@ async function getImage(id: string) {
 export async function generateMetadata({ params }: ImagePageProps): Promise<Metadata> {
   const { id } = await params;
   const image = await getImage(id);
-
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://vip-2-kohl.vercel.app';
+  const baseUrl = getBaseUrl();
   
   if (!image) {
     return {
@@ -88,12 +98,6 @@ export default async function ImagePage({ params }: ImagePageProps) {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      {/* Elementos para forçar o preview no WhatsApp */}
-      <meta property="og:image" content={image.imageUrl} />
-      <meta property="og:image:type" content="image/png" />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
-      
       <div className="max-w-4xl w-full bg-white rounded-xl shadow-2xl overflow-hidden">
         <div className="p-6 border-b border-gray-100">
           <h1 className="text-2xl font-bold text-gray-800">Visualizando Imagem</h1>
