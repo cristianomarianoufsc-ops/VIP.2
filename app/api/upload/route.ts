@@ -151,9 +151,7 @@ export async function POST(request: NextRequest) {
 
     // Construir URL otimizada com transformações do Cloudinary
     // Isso garante que a imagem sempre será 1200x630 para link previews
-    const baseUrl = cloudinaryUploadResult.secure_url.split('upload/')[0];
-    const uploadPath = cloudinaryUploadResult.secure_url.split('upload/')[1];
-    const publicUrl = `${baseUrl}upload/w_1200,h_630,c_fill,q_auto,f_auto/${uploadPath}`;
+    const publicUrl = cloudinaryUploadResult.secure_url;
 
     // Salvar metadados da imagem no banco de dados
     const baseUrlForShortUrl = process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');

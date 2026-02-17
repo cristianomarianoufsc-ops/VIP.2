@@ -8,13 +8,13 @@ export function middleware(request: NextRequest) {
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   
-  // Cache headers para otimizar crawlers
-  response.headers.set('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+  // Cache headers para otimizar crawlers (WhatsApp prefere cache curto para testes)
+  response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60');
   
-  // Content Security Policy
+  // Content Security Policy - Removido para teste se estava bloqueando algo, mas mantendo o básico
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; img-src 'self' https: data:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
+    "default-src 'self'; img-src * data:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
   );
 
   return response;

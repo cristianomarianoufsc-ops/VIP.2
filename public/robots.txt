@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Allow: /img/
+
+Sitemap: https://vip2.vercel.app/sitemap.xml

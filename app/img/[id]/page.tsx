@@ -51,10 +51,11 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
 
   // Otimizar URL da imagem para garantir dimensões corretas
   // Adicionar transformações do Cloudinary para garantir 1200x630
+  // O WhatsApp prefere JPEGs progressivos e menores que 300KB para a miniatura
   const optimizedImageUrl = image.imageUrl.includes('cloudinary.com')
     ? image.imageUrl.includes('?') 
-      ? `${image.imageUrl}&w=1200&h=630&c=fill&q=auto&f=auto`
-      : `${image.imageUrl}?w=1200&h=630&c=fill&q=auto&f=auto`
+      ? `${image.imageUrl}&w=1200&h=630&c=fill&q=auto&f=jpg&fl=progressive`
+      : `${image.imageUrl}?w=1200&h=630&c=fill&q=auto&f=jpg&fl=progressive`
     : image.imageUrl;
 
   return {
@@ -68,7 +69,7 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
       description,
       url: fullUrl,
       siteName: 'VIP Image Host',
-      type: 'website',
+      type: 'article', // Alterado para article para melhor tratamento em algumas redes
       locale: 'pt_BR',
       images: [
         {
@@ -78,9 +79,9 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
           alt: title,
           type: 'image/jpeg',
         },
-        // Adicionar imagem quadrada como fallback para WhatsApp
+        // Adicionar imagem quadrada como fallback para WhatsApp (muito importante)
         {
-          url: optimizedImageUrl,
+          url: optimizedImageUrl.replace('w=1200&h=630', 'w=600&h=600'),
           width: 600,
           height: 600,
           alt: title,
