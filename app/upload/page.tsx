@@ -1,7 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import prisma from '../../lib/prisma';
+import { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Copy, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 
@@ -10,7 +9,7 @@ interface UploadedImage {
   fileName: string;
   shortUrl: string;
   imageUrl: string;
-  createdAt: Date;
+  createdAt: string;
   fileSize?: number;
 }
 
@@ -19,15 +18,31 @@ interface UploadError {
   detail?: string;
 }
 
-export default async function Upload() {
-  const initialImages = await prisma.image.findMany({
-    orderBy: { createdAt: 'desc' },
-  });
+export default function Upload() {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [images, setImages] = useState<UploadedImage[]>(initialImages);
+  const [images, setImages] = useState<UploadedImage[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<UploadError | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Carregar imagens iniciais da API
+  useEffect(() => {
+    async function fetchImages() {
+      try {
+        const response = await fetch('/api/images');
+        if (response.ok) {
+          const data = await response.json();
+          setImages(data);
+        }
+      } catch (err) {
+        console.error('Erro ao carregar imagens:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchImages();
+  }, []);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -73,7 +88,7 @@ export default async function Upload() {
         fileName: data.fileName,
         shortUrl: data.shortUrl,
         imageUrl: data.imageUrl,
-        createdAt: new Date().toLocaleDateString("pt-BR"),
+        createdAt: new Date().toISOString(),
         fileSize: data.fileSize,
       };
 
@@ -171,7 +186,9 @@ export default async function Upload() {
             Suas Imagens ({images.length})
           </h2>
 
-          {images.length === 0 ? (
+          {loading ? (
+            <p className="text-gray-600">Carregando imagens...</p>
+          ) : images.length === 0 ? (
             <p className="text-gray-600">Nenhuma imagem enviada ainda.</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

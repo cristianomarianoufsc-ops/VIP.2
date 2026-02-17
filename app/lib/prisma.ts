@@ -5,7 +5,6 @@ const prismaClientSingleton = () => {
     datasources: {
       db: {
         url: process.env.DATABASE_URL,
-        accelerateUrl: process.env.ACCELERATE_URL,
       },
     },
   });
