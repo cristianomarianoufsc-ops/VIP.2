@@ -20,7 +20,7 @@ function getBaseUrl() {
   }
   // Fallback para produção VIP2 se nada for definido
   if (process.env.NODE_ENV === 'production') {
-    return 'https://vip2.vercel.app';
+    return 'https://vip-2-efyo9go9i-cristianomarianoufscs-projects.vercel.app';
   }
   return 'http://localhost:3000';
 }
@@ -56,12 +56,19 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
   const description = `Clique para visualizar a imagem: ${image.fileName}. Compartilhe este link via WhatsApp, Facebook ou qualquer rede social.`;
 
   // Otimizar URL da imagem para garantir dimensões corretas
-  // Adicionar transformações do Cloudinary para garantir 1200x630
   // O WhatsApp prefere JPEGs progressivos e menores que 300KB para a miniatura
+  // Usamos transformações do Cloudinary para garantir o formato e tamanho ideal
   const optimizedImageUrl = image.imageUrl.includes('cloudinary.com')
     ? image.imageUrl.includes('?') 
       ? `${image.imageUrl}&w=1200&h=630&c=fill&q=auto&f=jpg&fl=progressive`
       : `${image.imageUrl}?w=1200&h=630&c=fill&q=auto&f=jpg&fl=progressive`
+    : image.imageUrl;
+
+  // Imagem quadrada para WhatsApp (muito importante para previews menores)
+  const squareImageUrl = image.imageUrl.includes('cloudinary.com')
+    ? image.imageUrl.includes('?')
+      ? `${image.imageUrl}&w=600&h=600&c=fill&q=auto&f=jpg&fl=progressive`
+      : `${image.imageUrl}?w=600&h=600&c=fill&q=auto&f=jpg&fl=progressive`
     : image.imageUrl;
 
   return {
@@ -86,13 +93,12 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
           secureUrl: optimizedImageUrl,
           type: 'image/jpeg',
         },
-        // Adicionar imagem quadrada como fallback para WhatsApp (muito importante)
         {
-          url: optimizedImageUrl.replace('w=1200&h=630', 'w=600&h=600'),
+          url: squareImageUrl,
           width: 600,
           height: 600,
           alt: title,
-          secureUrl: optimizedImageUrl.replace('w=1200&h=630', 'w=600&h=600'),
+          secureUrl: squareImageUrl,
           type: 'image/jpeg',
         },
       ],
@@ -132,6 +138,12 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
       initialScale: 1,
       maximumScale: 5,
     },
+    
+    // Outras tags que podem ajudar
+    other: {
+      'fb:app_id': '966242223397117', // ID padrão se necessário, ou remover se não tiver
+      'thumbnail': squareImageUrl,
+    }
   };
 }
 
