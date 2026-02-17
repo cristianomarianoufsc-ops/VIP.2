@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import prisma from '../../lib/prisma';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Sem cache para garantir metadados sempre atualizados
 
 interface ImagePageProps {
   params: Promise<{ id: string }>;
@@ -34,7 +35,8 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
   const { id } = await params;
   const image = await getImage(id);
   const baseUrl = getBaseUrl();
-  
+  const fullUrl = `${baseUrl}/img/${id}`;
+
   if (!image) {
     return {
       title: 'Imagem não encontrada',
@@ -43,34 +45,83 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
     };
   }
 
-  const title = `Imagem ${image.fileName}`;
-  const description = `Veja a imagem ${image.fileName} em VIP.2`;
+  // Gerar título e descrição mais descritivos
+  const title = `Visualizar ${image.fileName} - VIP Image Host`;
+  const description = `Clique para visualizar a imagem: ${image.fileName}. Compartilhe este link via WhatsApp, Facebook ou qualquer rede social.`;
+
+  // Otimizar URL da imagem para garantir dimensões corretas
+  // Adicionar transformações do Cloudinary para garantir 1200x630
+  const optimizedImageUrl = image.imageUrl.includes('cloudinary.com')
+    ? image.imageUrl.includes('?') 
+      ? `${image.imageUrl}&w=1200&h=630&c=fill&q=auto&f=auto`
+      : `${image.imageUrl}?w=1200&h=630&c=fill&q=auto&f=auto`
+    : image.imageUrl;
 
   return {
     title,
     description,
     metadataBase: new URL(baseUrl),
+    
+    // Open Graph - Essencial para WhatsApp, Facebook, etc
     openGraph: {
       title,
       description,
-      url: `${baseUrl}/img/${id}`,
+      url: fullUrl,
       siteName: 'VIP Image Host',
+      type: 'website',
+      locale: 'pt_BR',
       images: [
         {
-          url: image.imageUrl,
+          url: optimizedImageUrl,
           width: 1200,
           height: 630,
           alt: title,
+          type: 'image/jpeg',
+        },
+        // Adicionar imagem quadrada como fallback para WhatsApp
+        {
+          url: optimizedImageUrl,
+          width: 600,
+          height: 600,
+          alt: title,
+          type: 'image/jpeg',
         },
       ],
-      locale: 'pt_BR',
-      type: 'website',
     },
+
+    // Twitter Card
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: [image.imageUrl],
+      images: [optimizedImageUrl],
+      creator: '@VIPImageHost',
+    },
+
+    // Metadados adicionais para melhor compatibilidade
+    keywords: ['imagem', 'compartilhamento', 'visualizar', image.fileName],
+    authors: [{ name: 'VIP Image Host' }],
+    robots: {
+      index: true,
+      follow: true,
+      nocache: false,
+      googleBot: {
+        index: true,
+        follow: true,
+        noimageindex: false,
+      },
+    },
+
+    // Canonical URL para evitar duplicação
+    alternates: {
+      canonical: fullUrl,
+    },
+
+    // Viewport e outras configurações
+    viewport: {
+      width: 'device-width',
+      initialScale: 1,
+      maximumScale: 5,
     },
   };
 }
@@ -109,6 +160,7 @@ export default async function ImagePage({ params }: ImagePageProps) {
             src={image.imageUrl} 
             alt={image.fileName} 
             className="max-w-full h-auto rounded-lg shadow-sm"
+            loading="eager"
           />
         </div>
         
