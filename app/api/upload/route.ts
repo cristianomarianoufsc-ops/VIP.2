@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
+import prisma from '../../lib/prisma';
 import { v2 as cloudinary } from 'cloudinary';
 
 cloudinary.config({
@@ -114,6 +115,17 @@ export async function POST(request: NextRequest) {
     const publicUrl = cloudinaryUploadResult.secure_url;
     console.log(`[${requestId}] Cloudinary upload successful. Public URL: ${publicUrl}`);
 
+    // Salvar metadados da imagem no banco de dados
+    const newImage = await prisma.image.create({
+      data: {
+        shortId: shortId,
+        fileName: file.name,
+        imageUrl: publicUrl,
+        shortUrl: `${process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')}/img/${shortId}`,
+      },
+    });
+    console.log(`[${requestId}] Image metadata saved to database: ${newImage.id}`);
+
 
 
 
@@ -124,12 +136,12 @@ export async function POST(request: NextRequest) {
     // Retornar link curto e informações
     return NextResponse.json({
       success: true,
-      shortId: fileKey, // Usar fileKey como o ID para a página de visualização
-      imageUrl: publicUrl,
-      fileName: file.name,
+      shortId: newImage.shortId,
+      imageUrl: newImage.imageUrl,
+      fileName: newImage.fileName,
       fileSize: file.size,
       uploadDuration: duration,
-      shortUrl: `${process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')}/img/${fileKey}` // Link para a nova página de visualização
+      shortUrl: newImage.shortUrl,
     });
   } catch (error: any) {
     const duration = Date.now() - startTime;

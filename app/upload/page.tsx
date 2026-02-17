@@ -1,15 +1,16 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import prisma from '../../lib/prisma';
 import Link from 'next/link';
 import { Copy, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface UploadedImage {
-  id: string;
+  shortId: string;
   fileName: string;
   shortUrl: string;
   imageUrl: string;
-  createdAt: string;
+  createdAt: Date;
   fileSize?: number;
 }
 
@@ -18,9 +19,12 @@ interface UploadError {
   detail?: string;
 }
 
-export default function Upload() {
+export default async function Upload() {
+  const initialImages = await prisma.image.findMany({
+    orderBy: { createdAt: 'desc' },
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [images, setImages] = useState<UploadedImage[]>([]);
+  const [images, setImages] = useState<UploadedImage[]>(initialImages);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<UploadError | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -65,7 +69,7 @@ export default function Upload() {
       }
 
       const newImage: UploadedImage = {
-        id: data.shortId,
+        shortId: data.shortId,
         fileName: data.fileName,
         shortUrl: data.shortUrl,
         imageUrl: data.imageUrl,
@@ -173,7 +177,7 @@ export default function Upload() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {images.map((image) => (
                 <div
-                  key={image.id}
+                  key={image.shortId}
                   className="border border-gray-200 rounded-lg overflow-hidden bg-white hover:shadow-lg transition-shadow"
                 >
                   <img
@@ -198,7 +202,7 @@ export default function Upload() {
                       </p>
                     </div>
                     <div className="flex justify-between items-center mt-3 text-xs text-gray-500">
-                      <span>{image.createdAt}</span>
+                      <span>{new Date(image.createdAt).toLocaleDateString("pt-BR")}</span>
                       {image.fileSize && (
                         <span>{formatFileSize(image.fileSize)}</span>
                       )}
