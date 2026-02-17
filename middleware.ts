@@ -11,11 +11,8 @@ export function middleware(request: NextRequest) {
   // Cache headers para otimizar crawlers (WhatsApp prefere cache curto para testes)
   response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60');
   
-  // Content Security Policy - Removido para teste se estava bloqueando algo, mas mantendo o básico
-  response.headers.set(
-    'Content-Security-Policy',
-    "default-src 'self'; img-src * data:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
-  );
+  // Content Security Policy desativada temporariamente para garantir que não bloqueie crawlers
+  // response.headers.set('Content-Security-Policy', "...");
 
   return response;
 }

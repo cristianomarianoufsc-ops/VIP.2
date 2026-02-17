@@ -39,8 +39,19 @@ Após analisar o trabalho do agente anterior e o código atual, identifiquei que
    - `public/robots.txt`
    - `public/sitemap.xml`
 
+## Novas Descobertas (Update)
+Identifiquei que o `metadataBase` poderia estar falhando se as variáveis de ambiente não estivessem 100% corretas no seu provedor de hospedagem.
+
+1. **Fallback de URL Base:** Adicionei um fallback para `https://vip2.vercel.app` caso as variáveis `NEXT_PUBLIC_BASE_URL` ou `VERCEL_URL` não estejam presentes. Isso garante que o link nunca saia como `localhost`.
+2. **Secure URL:** Adicionei explicitamente a tag `secureUrl` nos metadados Open Graph, que o WhatsApp às vezes exige para imagens HTTPS.
+3. **Remoção de CSP:** Desativei temporariamente a política de segurança (CSP) no middleware, pois ela poderia estar impedindo o robô do WhatsApp de "ler" o conteúdo da página.
+
 ## Como Validar Agora
 1. Faça o push das alterações.
-2. Aguarde o deploy na Vercel.
-3. **IMPORTANTE**: Use o [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/) e clique em **"Scrape Again"** (Coletar novamente) para limpar o cache antigo dos servidores do Facebook/WhatsApp.
-4. Teste enviando o link no WhatsApp Web e aguarde 3 segundos antes de enviar.
+2. Aguarde o deploy.
+3. **PASSO CRUCIAL**: Acesse o [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/).
+4. Cole a URL de uma imagem (ex: `https://seu-site.com/img/ID`).
+5. Se ele mostrar "Link never shared", clique em **Fetch New Information**.
+6. Se ele mostrar informações antigas, clique em **Scrape Again**.
+7. **OLHE O RESULTADO NO DEBUGGER**: Se a imagem aparecer lá, ela VAI aparecer no WhatsApp. Se não aparecer lá, o Debugger vai te dar um erro em vermelho explicando o porquê (ex: 404, imagem muito grande, etc).
+8. Somente após a imagem aparecer no Debugger, tente enviar no WhatsApp.

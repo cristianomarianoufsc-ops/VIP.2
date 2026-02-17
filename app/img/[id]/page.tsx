@@ -10,11 +10,17 @@ interface ImagePageProps {
 
 // Função auxiliar para obter a URL base dinamicamente
 function getBaseUrl() {
+  // Prioridade 1: Variável de ambiente explícita
   if (process.env.NEXT_PUBLIC_BASE_URL) {
-    return process.env.NEXT_PUBLIC_BASE_URL;
+    return process.env.NEXT_PUBLIC_BASE_URL.replace(/\/$/, '');
   }
+  // Prioridade 2: Vercel URL (sempre https)
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
+  }
+  // Fallback para produção VIP2 se nada for definido
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://vip2.vercel.app';
   }
   return 'http://localhost:3000';
 }
@@ -69,7 +75,7 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
       description,
       url: fullUrl,
       siteName: 'VIP Image Host',
-      type: 'article', // Alterado para article para melhor tratamento em algumas redes
+      type: 'website',
       locale: 'pt_BR',
       images: [
         {
@@ -77,6 +83,7 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
           width: 1200,
           height: 630,
           alt: title,
+          secureUrl: optimizedImageUrl,
           type: 'image/jpeg',
         },
         // Adicionar imagem quadrada como fallback para WhatsApp (muito importante)
@@ -85,6 +92,7 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
           width: 600,
           height: 600,
           alt: title,
+          secureUrl: optimizedImageUrl.replace('w=1200&h=630', 'w=600&h=600'),
           type: 'image/jpeg',
         },
       ],
