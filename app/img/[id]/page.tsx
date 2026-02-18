@@ -155,54 +155,22 @@ export default async function ImagePage({ params }: ImagePageProps) {
 
   if (!image) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-        <div className="bg-white p-8 rounded-xl shadow-md text-center">
-          <h1 className="text-3xl font-bold mb-4 text-gray-800">Imagem não encontrada</h1>
-          <p className="text-gray-600 mb-6">A imagem que você procura não existe ou houve um erro ao acessá-la.</p>
-          <a 
-            href="/upload"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
-          >
-            Voltar para Upload
-          </a>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-black p-4 text-white">
+        <h1 className="text-2xl font-bold mb-4">Imagem não encontrada</h1>
+        <p className="opacity-70">A imagem que você procura não existe ou foi removida.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="max-w-4xl w-full bg-white rounded-xl shadow-2xl overflow-hidden">
-        <div className="p-6 border-b border-gray-100">
-          <h1 className="text-2xl font-bold text-gray-800">Visualizando Imagem</h1>
-          <p className="text-sm text-gray-500 mt-1">ID: {image.shortId} | Nome: {image.fileName}</p>
-        </div>
-        
-        <div className="p-4 flex justify-center bg-gray-50">
-          <img 
-            src={image.imageUrl} 
-            alt={image.fileName} 
-            className="max-w-full h-auto rounded-lg shadow-sm"
-            loading="eager"
-          />
-        </div>
-        
-        <div className="p-6 bg-white flex flex-col sm:flex-row gap-4 justify-center">
-          <a 
-            href={image.imageUrl} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors text-center"
-          >
-            Ver Original
-          </a>
-          <a 
-            href="/upload"
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-semibold transition-colors text-center"
-          >
-            Fazer Novo Upload
-          </a>
-        </div>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black">
+      <div className="relative w-full h-screen flex items-center justify-center p-2 sm:p-4">
+        <img 
+          src={image.imageUrl} 
+          alt={image.fileName} 
+          className="max-w-full max-h-full object-contain shadow-2xl"
+          loading="eager"
+        />
       </div>
     </div>
   );
