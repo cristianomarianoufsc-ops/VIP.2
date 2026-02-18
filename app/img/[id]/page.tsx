@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { headers } from 'next/headers';
 import prisma from '../../lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -107,6 +108,11 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
 export default async function ImagePage({ params }: ImagePageProps) {
   const { id } = await params;
   const image = await getImage(id);
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || '';
+
+  // Lista de crawlers conhecidos que precisam ver as meta tags
+  const isBot = /facebookexternalhit|WhatsApp|Twitterbot|Pinterest|Slackbot|LinkedInBot|TelegramBot|Googlebot/i.test(userAgent);
 
   if (!image) {
     return (
@@ -116,6 +122,28 @@ export default async function ImagePage({ params }: ImagePageProps) {
     );
   }
 
+  // LÓGICA DE REDIRECIONAMENTO DEFINITIVA:
+  // Se NÃO for um bot (ou seja, se for um humano no navegador), redireciona direto para a URL da imagem.
+  // Isso garante que o usuário veja APENAS a imagem, exatamente como "abrir em nova aba".
+  if (!isBot) {
+    return (
+      <html>
+        <head>
+          <meta httpEquiv="refresh" content={`0;url=${image.imageUrl}`} />
+          <script dangerouslySetInnerHTML={{ __html: `window.location.href = "${image.imageUrl}";` }} />
+        </head>
+        <body style={{ backgroundColor: 'black', margin: 0 }}>
+          {/* Fallback caso o redirecionamento demore um milésimo de segundo */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+            <img src={image.imageUrl} style={{ maxWidth: '100%', maxHeight: '100%' }} />
+          </div>
+        </body>
+      </html>
+    );
+  }
+
+  // Se for um BOT (WhatsApp), renderiza a página com as meta tags (que estão no generateMetadata)
+  // e uma estrutura mínima de visualização.
   return (
     <div style={{ 
       backgroundColor: 'black', 
