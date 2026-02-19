@@ -123,52 +123,10 @@ export default async function ImagePage({ params }: ImagePageProps) {
     );
   }
 
-  // Se NÃO for um bot (ou seja, se for um humano no navegador):
-  // Renderiza a imagem diretamente em uma página pura, sem redirecionamentos
-  // Isso garante que o usuário veja APENAS a imagem, sem botões ou interfaces adicionais
-  if (!isBot) {
-    return (
-      <html>
-        <head>
-          <meta charSet="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <title>{image.fileName}</title>
-          <style>{`
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
-            html, body {
-              width: 100%;
-              height: 100%;
-              background-color: #000;
-              overflow: hidden;
-            }
-            body {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            img {
-              max-width: 100%;
-              max-height: 100%;
-              width: auto;
-              height: auto;
-              display: block;
-              object-fit: contain;
-            }
-          `}</style>
-        </head>
-        <body>
-          <img src={image.imageUrl} alt={image.fileName} />
-        </body>
-      </html>
-    );
-  }
-
-  // Se for um BOT (WhatsApp), renderiza a página com as meta tags (que estão no generateMetadata)
-  // e uma estrutura mínima de visualização.
+  // Renderização universal simplificada:
+  // Tanto para humanos quanto para bots, entregamos uma página preta com a imagem centralizada.
+  // Os metadados (para miniaturas no WhatsApp) já são injetados pelo Next.js via generateMetadata.
+  // Removendo qualquer lógica complexa de detecção de bot para evitar falhas.
   return (
     <div style={{ 
       backgroundColor: 'black', 
@@ -179,7 +137,10 @@ export default async function ImagePage({ params }: ImagePageProps) {
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      position: 'fixed',
+      top: 0,
+      left: 0
     }}>
       <img 
         src={image.imageUrl} 
