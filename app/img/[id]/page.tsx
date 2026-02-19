@@ -32,6 +32,7 @@ async function getImage(id: string) {
     console.error('Database error:', error);
     return null;
   }
+
 }
 
 export async function generateMetadata({ params }: ImagePageProps): Promise<Metadata> {
@@ -122,21 +123,45 @@ export default async function ImagePage({ params }: ImagePageProps) {
     );
   }
 
-  // LÓGICA DE REDIRECIONAMENTO DEFINITIVA:
-  // Se NÃO for um bot (ou seja, se for um humano no navegador), redireciona direto para a URL da imagem.
-  // Isso garante que o usuário veja APENAS a imagem, exatamente como "abrir em nova aba".
+  // Se NÃO for um bot (ou seja, se for um humano no navegador):
+  // Renderiza a imagem diretamente em uma página pura, sem redirecionamentos
+  // Isso garante que o usuário veja APENAS a imagem, sem botões ou interfaces adicionais
   if (!isBot) {
     return (
       <html>
         <head>
-          <meta httpEquiv="refresh" content={`0;url=${image.imageUrl}`} />
-          <script dangerouslySetInnerHTML={{ __html: `window.location.href = "${image.imageUrl}";` }} />
+          <meta charSet="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>{image.fileName}</title>
+          <style>{`
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            html, body {
+              width: 100%;
+              height: 100%;
+              background-color: #000;
+              overflow: hidden;
+            }
+            body {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            img {
+              max-width: 100%;
+              max-height: 100%;
+              width: auto;
+              height: auto;
+              display: block;
+              object-fit: contain;
+            }
+          `}</style>
         </head>
-        <body style={{ backgroundColor: 'black', margin: 0 }}>
-          {/* Fallback caso o redirecionamento demore um milésimo de segundo */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-            <img src={image.imageUrl} style={{ maxWidth: '100%', maxHeight: '100%' }} />
-          </div>
+        <body>
+          <img src={image.imageUrl} alt={image.fileName} />
         </body>
       </html>
     );
