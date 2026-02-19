@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import { headers } from 'next/headers';
 import prisma from '../../lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -16,10 +15,7 @@ function getBaseUrl() {
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }
-  if (process.env.NODE_ENV === 'production') {
-    return 'https://vip-2-efyo9go9i-cristianomarianoufscs-projects.vercel.app';
-  }
-  return 'http://localhost:3000';
+  return 'https://vip-2-biy47o94b-cristianomarianoufscs-projects.vercel.app';
 }
 
 async function getImage(id: string) {
@@ -32,7 +28,6 @@ async function getImage(id: string) {
     console.error('Database error:', error);
     return null;
   }
-
 }
 
 export async function generateMetadata({ params }: ImagePageProps): Promise<Metadata> {
@@ -51,18 +46,8 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
   const title = `VIP Image - ${image.fileName}`;
   const description = "Visualize esta imagem compartilhada via VIP Image Host.";
 
-  // Otimização agressiva para WhatsApp (Cloudinary)
-  const optimizedImageUrl = image.imageUrl.includes('cloudinary.com')
-    ? image.imageUrl.includes('?') 
-      ? `${image.imageUrl}&w=1200&h=630&c=fill&q=auto&f=jpg`
-      : `${image.imageUrl}?w=1200&h=630&c=fill&q=auto&f=jpg`
-    : image.imageUrl;
-
-  const squareImageUrl = image.imageUrl.includes('cloudinary.com')
-    ? image.imageUrl.includes('?')
-      ? `${image.imageUrl}&w=400&h=400&c=fill&q=auto&f=jpg`
-      : `${image.imageUrl}?w=400&h=400&c=fill&q=auto&f=jpg`
-    : image.imageUrl;
+  // URL original para o preview
+  const previewImageUrl = image.imageUrl;
 
   return {
     title,
@@ -76,15 +61,9 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
       type: 'website',
       images: [
         {
-          url: optimizedImageUrl,
+          url: previewImageUrl,
           width: 1200,
           height: 630,
-          alt: title,
-        },
-        {
-          url: squareImageUrl,
-          width: 400,
-          height: 400,
           alt: title,
         }
       ],
@@ -93,15 +72,11 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
       card: 'summary_large_image',
       title,
       description,
-      images: [optimizedImageUrl],
+      images: [previewImageUrl],
     },
     other: {
-      'og:image:secure_url': optimizedImageUrl,
-      'og:image:type': 'image/jpeg',
-      'og:image:width': '1200',
-      'og:image:height': '630',
-      'twitter:image': optimizedImageUrl,
-      'thumbnail': squareImageUrl,
+      'og:image:secure_url': previewImageUrl,
+      'twitter:image': previewImageUrl,
     }
   };
 }
@@ -109,11 +84,6 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
 export default async function ImagePage({ params }: ImagePageProps) {
   const { id } = await params;
   const image = await getImage(id);
-  const headersList = await headers();
-  const userAgent = headersList.get('user-agent') || '';
-
-  // Lista de crawlers conhecidos que precisam ver as meta tags
-  const isBot = /facebookexternalhit|WhatsApp|Twitterbot|Pinterest|Slackbot|LinkedInBot|TelegramBot|Googlebot/i.test(userAgent);
 
   if (!image) {
     return (
@@ -123,10 +93,6 @@ export default async function ImagePage({ params }: ImagePageProps) {
     );
   }
 
-  // Renderização universal simplificada:
-  // Tanto para humanos quanto para bots, entregamos uma página preta com a imagem centralizada.
-  // Os metadados (para miniaturas no WhatsApp) já são injetados pelo Next.js via generateMetadata.
-  // Removendo qualquer lógica complexa de detecção de bot para evitar falhas.
   return (
     <div style={{ 
       backgroundColor: 'black', 
