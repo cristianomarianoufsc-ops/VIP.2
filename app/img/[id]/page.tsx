@@ -106,18 +106,61 @@ export default async function ImagePage({ params }: ImagePageProps) {
       overflow: 'hidden',
       position: 'fixed',
       top: 0,
-      left: 0
+      left: 0,
+      userSelect: 'none',
+      WebkitUserSelect: 'none'
     }}>
-      <img 
-        src={image.imageUrl} 
-        alt={image.fileName} 
-        style={{ 
-          maxWidth: '100%', 
-          maxHeight: '100%', 
-          objectFit: 'contain',
-          display: 'block'
-        }}
-      />
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: '100%', maxHeight: '100%' }}>
+        <img 
+          src={image.imageUrl} 
+          alt={image.fileName} 
+          style={{ 
+            maxWidth: '100%', 
+            maxHeight: '100%', 
+            objectFit: 'contain',
+            display: 'block',
+            pointerEvents: 'none'
+          }}
+          onContextMenu={(e) => e.preventDefault()}
+        />
+        {/* Marca d'água de texto repetida */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateRows: 'repeat(3, 1fr)',
+          pointerEvents: 'none',
+          zIndex: 10,
+          overflow: 'hidden'
+        }}>
+          {[...Array(9)].map((_, i) => (
+            <div key={i} style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transform: 'rotate(-45deg)',
+              color: 'rgba(255, 255, 255, 0.2)',
+              fontSize: '2vw',
+              fontWeight: 'bold',
+              whiteSpace: 'nowrap',
+              fontFamily: 'sans-serif',
+              textTransform: 'uppercase',
+              letterSpacing: '2px'
+            }}>
+              VIP IMAGE HOST
+            </div>
+          ))}
+        </div>
+        {/* Camada invisível para bloquear clique direito e arrastar */}
+        <div 
+          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 20 }} 
+          onContextMenu={(e) => e.preventDefault()}
+        />
+      </div>
     </div>
   );
 }
