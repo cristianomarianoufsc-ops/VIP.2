@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
     };
   }
 
-  const title = `VIP Image`;
+  const title = `VIP - Visualizador de imagens protegidas`;
   const description = "Visualize esta imagem compartilhada via VIP Image Host.";
 
   // URL original para o preview
