@@ -10,13 +10,8 @@ interface ImagePageProps {
 }
 
 function getBaseUrl() {
-  if (process.env.NEXT_PUBLIC_BASE_URL) {
-    return process.env.NEXT_PUBLIC_BASE_URL.replace(/\/$/, '');
-  }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-  return 'https://vip-2-biy47o94b-cristianomarianoufscs-projects.vercel.app';
+  // Prioriza o domínio oficial conforme solicitado
+  return 'https://vip-2-kohl.vercel.app';
 }
 
 async function getImage(id: string) {
