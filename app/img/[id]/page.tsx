@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import prisma from '../../lib/prisma';
+import ImageViewer from './ImageViewer';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -45,8 +46,6 @@ export async function generateMetadata({ params }: ImagePageProps): Promise<Meta
 
   const title = `VIP - Visualizador de imagens protegidas`;
   const description = "Visualize esta imagem compartilhada via VIP Image Host.";
-
-  // URL original para o preview
   const previewImageUrl = image.imageUrl;
 
   return {
@@ -94,72 +93,9 @@ export default async function ImagePage({ params }: ImagePageProps) {
   }
 
   return (
-    <div style={{ 
-      backgroundColor: 'black', 
-      margin: 0, 
-      padding: 0, 
-      height: '100vh', 
-      width: '100vw', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center',
-      overflow: 'hidden',
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      userSelect: 'none',
-      WebkitUserSelect: 'none'
-    }}>
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: '100%', maxHeight: '100%' }}>
-        <img 
-          src={image.imageUrl} 
-          alt={image.fileName} 
-          style={{ 
-            maxWidth: '100%', 
-            maxHeight: '100%', 
-            objectFit: 'contain',
-            display: 'block',
-            pointerEvents: 'none'
-          }}
-        />
-        
-        {/* Marca d'água de texto simplificada para evitar erros de renderização */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignContent: 'center',
-          justifyContent: 'center',
-          pointerEvents: 'none',
-          zIndex: 10,
-          overflow: 'hidden',
-          opacity: 0.2
-        }}>
-          {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <div key={i} style={{
-              margin: '20px',
-              transform: 'rotate(-45deg)',
-              color: 'white',
-              fontSize: '24px',
-              fontWeight: 'bold',
-              whiteSpace: 'nowrap',
-              fontFamily: 'sans-serif',
-              textTransform: 'uppercase'
-            }}>
-              VIP IMAGE HOST
-            </div>
-          ))}
-        </div>
-        
-        {/* Camada invisível para bloquear interações */}
-        <div 
-          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 20 }} 
-        />
-      </div>
-    </div>
+    <ImageViewer 
+      imageUrl={image.imageUrl} 
+      fileName={image.fileName} 
+    />
   );
 }
