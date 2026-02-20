@@ -121,44 +121,43 @@ export default async function ImagePage({ params }: ImagePageProps) {
             display: 'block',
             pointerEvents: 'none'
           }}
-          onContextMenu={(e) => e.preventDefault()}
         />
-        {/* Marca d'água de texto repetida */}
+        
+        {/* Marca d'água de texto simplificada para evitar erros de renderização */}
         <div style={{
           position: 'absolute',
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gridTemplateRows: 'repeat(3, 1fr)',
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignContent: 'center',
+          justifyContent: 'center',
           pointerEvents: 'none',
           zIndex: 10,
-          overflow: 'hidden'
+          overflow: 'hidden',
+          opacity: 0.2
         }}>
-          {[...Array(9)].map((_, i) => (
+          {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <div key={i} style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              margin: '20px',
               transform: 'rotate(-45deg)',
-              color: 'rgba(255, 255, 255, 0.2)',
-              fontSize: '2vw',
+              color: 'white',
+              fontSize: '24px',
               fontWeight: 'bold',
               whiteSpace: 'nowrap',
               fontFamily: 'sans-serif',
-              textTransform: 'uppercase',
-              letterSpacing: '2px'
+              textTransform: 'uppercase'
             }}>
               VIP IMAGE HOST
             </div>
           ))}
         </div>
-        {/* Camada invisível para bloquear clique direito e arrastar */}
+        
+        {/* Camada invisível para bloquear interações */}
         <div 
           style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 20 }} 
-          onContextMenu={(e) => e.preventDefault()}
         />
       </div>
     </div>
